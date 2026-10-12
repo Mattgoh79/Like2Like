@@ -3,16 +3,15 @@ const clientId = "8a57f765adbf4334abf64a2e370ec977";
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 let offset = 0;
-let allSongs = [];
 
 if (!code) {
     redirectToAuthCodeFlow(clientId);
 } else {
     const accessToken = await getAccessToken(clientId, code);
     const profile = await fetchProfile(accessToken);
-    const tracks = await fetchTracks(accessToken, 50, 0);
-    trackFetchLoop(accessToken, offset, allSongs);
-    populateUI(profile, tracks);
+    // const tracks = await fetchTracks(accessToken, 50, 0);
+    populateUI(profile);
+    trackFetchLoop(accessToken, offset);
 }
 
 
@@ -93,20 +92,21 @@ async function fetchProfile(token) {
 }
 
 
-async function trackFetchLoop(token, offset, allSongs) {
+async function trackFetchLoop(token, offset) {
     //so i create a json, each  new loop, will append to that list, .json() it, that json will be what i return to be rendered!!
-    let data = fetchTracks(token, 50, offset);
-
-    allSongs.push(data);
-    console.log(allSongs.name);
+    let data = await fetchTracks(token, 50, offset);
+    populateTracks(data);
+    // allSongs.push(data);
+    console.log(data);
     
     offset += 50;
     console.log(offset);
-    if(offset<500){
-        trackFetchLoop(token, offset, allSongs)
-    }
-    else{
+
+    if (offset >= data.total || offset >100  ){
         return;
+    }
+    else if(offset<10000){
+        trackFetchLoop(token, offset, data)
     }
 }
 
@@ -141,10 +141,20 @@ function populateUI(profile, tracks) {
     document.getElementById("uri").setAttribute("href", profile.external_urls.spotify);
     document.getElementById("url").innerText = profile.href;
     document.getElementById("url").setAttribute("href", profile.href);
-    const list = document.getElementById("tracks");
+    // const list = document.getElementById("tracks");
+    // tracks.items.forEach(({ track }) => {
+    //     const li = document.createElement("li");
+    //     li.textContent = `${track.name} — ${track.artists.map(a => a.name).join(", ")}`;
+    //     list.appendChild(li);
+    // });
+}
+
+function populateTracks(tracks) {
+        const list = document.getElementById("tracks");
     tracks.items.forEach(({ track }) => {
         const li = document.createElement("li");
         li.textContent = `${track.name} — ${track.artists.map(a => a.name).join(", ")}`;
         list.appendChild(li);
     });
+
 }
