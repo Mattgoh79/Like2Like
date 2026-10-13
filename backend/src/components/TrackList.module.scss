@@ -1,0 +1,51 @@
+.entireTrackSection {
+    max-width: fit-content;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;        
+    margin: 0 auto;
+}
+
+.header {
+    font-size:4lvb;
+    text-align: center;
+}
+
+.eachTrack {
+    align-content: center;
+    color: white;
+    align-content: center;
+    border-color: white;
+    border-width: 4cm;
+    background-color: rgb(41, 42, 43);
+    border-radius: 10px;
+    flex-grow: 1;
+    padding: 7px;
+    margin: 9px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 60%;
+    box-sizing: border-box;
+    &:hover{
+        background-color: black;
+    }
+
+}
+
+
+.trackName {
+    font-size:x-large;
+    color: rgb(209, 95, 95);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.artistName {
+    font-size: smaller;
+    white-space: nowrap;    
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

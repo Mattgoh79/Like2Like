@@ -4,18 +4,57 @@ const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 let offset = 0;
 
-if (!code) {
-    redirectToAuthCodeFlow(clientId);
-} else {
-    const accessToken = await getAccessToken(clientId, code);
-    const profile = await fetchProfile(accessToken);
-    // const tracks = await fetchTracks(accessToken, 50, 0);
-    populateUI(profile);
-    trackFetchLoop(accessToken, offset);
+
+// if (!code) {                         //since theres no code at first
+//     redirectToAuthCodeFlow(clientId);                           //it will go to the spoitfy log in page
+// } else {                            //after log in there is a code, so it goes to else
+//     const accessToken = await getAccessToken(clientId, code);
+//     // const profile = await fetchProfile(accessToken);
+//     // const tracks = await fetchTracks(accessToken, 50, 0);
+//     // populateUI(profile);
+//     // trackFetchLoop(accessToken, offset);
+//     const allTracksPromise = trackFetchLoop(accessToken, 0);
+
+// }
+
+if (code) {
+    window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+    );
 }
 
+export const allTracksPromise: Promise<any[]> = (async () => {
 
-export async function redirectToAuthCodeFlow(clientId) {
+    // Reuse saved tracks if the page is refreshed
+    const savedTracks = sessionStorage.getItem("spotifyTracks");
+
+    if (savedTracks) {
+        console.log("Using cached tracks");
+        return JSON.parse(savedTracks);
+    }
+
+
+    if (!code) {
+        await redirectToAuthCodeFlow(clientId);
+
+        // Redirecting navigates away from this page.
+        return [];
+    }
+
+    const accessToken = await getAccessToken(clientId, code);
+
+    const allTracks = await trackFetchLoop(accessToken, 0);
+   // Save the tracks so they survive page refreshes
+    sessionStorage.setItem("spotifyTracks", JSON.stringify(allTracks));
+
+    console.log("All tracks loaded:", allTracks.length);
+
+    return allTracks;
+})();
+
+export async function redirectToAuthCodeFlow(clientId: string) {
     const verifier = generateCodeVerifier(128);
     console.log(verifier);
     const challenge = await generateCodeChallenge(verifier);
@@ -33,7 +72,7 @@ export async function redirectToAuthCodeFlow(clientId) {
     document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
-function generateCodeVerifier(length) {
+function generateCodeVerifier(length: number) {
     let text = '';
     let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -43,7 +82,7 @@ function generateCodeVerifier(length) {
     return text;
 }
 
-async function generateCodeChallenge(codeVerifier) {
+async function generateCodeChallenge(codeVerifier: string | undefined) {
     const data = new TextEncoder().encode(codeVerifier);
     const digest = await window.crypto.subtle.digest('SHA-256', data);
     return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
@@ -53,7 +92,7 @@ async function generateCodeChallenge(codeVerifier) {
 }
 
 
-export async function getAccessToken(clientId, code) {
+export async function getAccessToken(clientId: string, code: string) {
     const verifier = localStorage.getItem("verifier");
     if (!verifier) {
         throw new Error("No verifier in localStorage - did you reload after redirect, or is this a stale/reused code?");
@@ -80,7 +119,7 @@ export async function getAccessToken(clientId, code) {
     return data.access_token;
 }
 
-async function fetchProfile(token) {
+async function fetchProfile(token: any) {
     const result = await fetch("https://api.spotify.com/v1/me", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` }
@@ -92,26 +131,28 @@ async function fetchProfile(token) {
 }
 
 
-async function trackFetchLoop(token, offset) {
+export async function trackFetchLoop(token: any, offset: number) {
     //so i create a json, each  new loop, will append to that list, .json() it, that json will be what i return to be rendered!!
-    let data = await fetchTracks(token, 50, offset);
-    populateTracks(data);
-    // allSongs.push(data);
-    console.log(data);
-    
-    offset += 50;
-    console.log(offset);
 
-    if (offset >= data.total || offset >100  ){
-        return;
+    const allTracks: any[] = [];
+
+    while(offset<100){
+        const data = await fetchTracks(token, 50, offset);
+        allTracks.push(...data.items);
+        offset += 50;
+
+        if(offset >= data.total){
+            break;
+        }
+
     }
-    else if(offset<10000){
-        trackFetchLoop(token, offset, data)
-    }
+
+    return allTracks;
+
 }
 
 
-async function fetchTracks(token, limit = 50, offset) { //so if i want to go through their whole library. then maybe i can loop it. fuck i have like 7k songs.
+async function fetchTracks(token: any, limit = 50, offset: any) { //so if i want to go through their whole library. then maybe i can loop it. fuck i have like 7k songs.
                                                 // thats like 1400 loops?
     const result = await fetch(`https://api.spotify.com/v1/me/tracks?offset=${offset}&limit=${limit}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -127,7 +168,7 @@ async function fetchTracks(token, limit = 50, offset) { //so if i want to go thr
 }
 
 
-function populateUI(profile, tracks) {
+function populateUI(profile: { id: string; email: string; uri: string; external_urls: { spotify: string; }; href: string; }, ) {
     // document.getElementById("displayName").innerText = profile.display_name;
     // if (profile.images[0]) {
     //     const profileImage = new Image(200, 200);
@@ -135,26 +176,27 @@ function populateUI(profile, tracks) {
     //     document.getElementById("avatar").appendChild(profileImage);
     //     document.getElementById("imgUrl").innerText = profile.images[0].url;
     // }
-    document.getElementById("id").innerText = profile.id;
-    document.getElementById("email").innerText = profile.email;
-    document.getElementById("uri").innerText = profile.uri;
-    document.getElementById("uri").setAttribute("href", profile.external_urls.spotify);
-    document.getElementById("url").innerText = profile.href;
-    document.getElementById("url").setAttribute("href", profile.href);
+    // document.getElementById("id").innerText = profile.id;sle.href);
     // const list = document.getElementById("tracks");
     // tracks.items.forEach(({ track }) => {
     //     const li = document.createElement("li");
     //     li.textContent = `${track.name} — ${track.artists.map(a => a.name).join(", ")}`;
     //     list.appendChild(li);
     // });
-}
+    return(
+        <div>ID: {profile.id}</div>
 
-function populateTracks(tracks) {
-        const list = document.getElementById("tracks");
-    tracks.items.forEach(({ track }) => {
-        const li = document.createElement("li");
-        li.textContent = `${track.name} — ${track.artists.map(a => a.name).join(", ")}`;
-        list.appendChild(li);
-    });
+
+    )
 
 }
+
+// function populateTracks(tracks: { items: { track: any; }[]; }) {
+//         const list = document.getElementById("tracks") ?? "test";
+//     tracks.items.forEach(({ track }) => {
+//         const li = document.createElement("li");
+//         li.textContent = `${track.name} — ${track.artists.map((a: { name: any; }) => a.name).join(", ")}`;
+//         list.appendChild(li);
+//     });
+
+// }

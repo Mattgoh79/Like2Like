@@ -10,3 +10,5 @@ OK SO. need to make it so they can both log in. OR like, if no need to log in to
 	-How Many times the user has listened to the song
 	
 3. Add Search too
+
+4. Use Redux and all cause i want the information to stay if its already been called dowan waste 
