@@ -5,6 +5,8 @@
     flex-direction: column;
     justify-content: center;        
     margin: 0 auto;
+    border: 2px solid rgb(71, 70, 70);
+    border-radius: 100px;
 }
 
 .header {
@@ -14,19 +16,16 @@
 
 .eachTrack {
     align-content: center;
-    color: white;
+    color: rgb(134, 122, 122);
     align-content: center;
-    border-color: white;
-    border-width: 4cm;
     background-color: rgb(41, 42, 43);
     border-radius: 10px;
     flex-grow: 1;
-    padding: 7px;
-    margin: 9px;
-    margin-left: auto;
-    margin-right: auto;
+    padding: 1%;
+    margin: 1%;
     width: 60%;
     box-sizing: border-box;
+    border: 2px solid rgb(71, 70, 70);
     &:hover{
         background-color: black;
     }
@@ -35,11 +34,12 @@
 
 
 .trackName {
-    font-size:x-large;
-    color: rgb(209, 95, 95);
+    color: white;
+    font-size:large;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-bottom: 2;
 }
 
 

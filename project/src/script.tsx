@@ -2,6 +2,8 @@
 const clientId = "8a57f765adbf4334abf64a2e370ec977";
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
+const code2 = params.get("code");  //problem rn is that the code is the same so if therse code, theres also code2
+
 let offset = 0;
 
 
@@ -25,7 +27,7 @@ if (code) {
     );
 }
 
-export const allTracksPromise: Promise<any[]> = (async () => {
+export const allTracksPromise: Promise<any[]> = (async () => { //MAKE A SECOND PROMISE FOR THE SECOND GUY?
 
     // Reuse saved tracks if the page is refreshed
     const savedTracks = sessionStorage.getItem("spotifyTracks");
@@ -42,17 +44,81 @@ export const allTracksPromise: Promise<any[]> = (async () => {
         // Redirecting navigates away from this page.
         return [];
     }
-
+    
     const accessToken = await getAccessToken(clientId, code);
-
+    
     const allTracks = await trackFetchLoop(accessToken, 0);
-   // Save the tracks so they survive page refreshes
+    // Save the tracks so they survive page refreshes
     sessionStorage.setItem("spotifyTracks", JSON.stringify(allTracks));
-
+    
     console.log("All tracks loaded:", allTracks.length);
-
+    
     return allTracks;
 })();
+
+export const allTracksPromise2: Promise<any[]> = (async () => { 
+
+    // Reuse saved tracks if the page is refreshed
+    const savedTracks = sessionStorage.getItem("spotifyTracks2");
+
+    if (savedTracks) {
+        console.log("Using cached tracks 2 ");
+        return JSON.parse(savedTracks);
+    }
+
+
+    if (!code2) {
+        await redirectToAuthCodeFlow(clientId);
+
+        // Redirecting navigates away from this page.
+        return [];
+    }
+    
+    const accessToken = await getAccessToken(clientId, code2);
+    
+    const allTracks = await trackFetchLoop(accessToken, 0);
+    // Save the tracks so they survive page refreshes
+    sessionStorage.setItem("spotifyTracks2", JSON.stringify(allTracks));
+    
+    console.log("All tracks loaded:", allTracks.length);
+    
+    return allTracks;
+})();
+
+export async function trackFetchLoop(token: any, offset: number) {
+    //so i create a json, each  new loop, will append to that list, .json() it, that json will be what i return to be rendered!!
+
+    const allTracks: any[] = [];
+
+    while(offset<100){
+        const data = await fetchTracks(token, 50, offset);
+        allTracks.push(...data.items);
+        offset += 50;
+
+        if(offset >= data.total){
+            break;
+        }
+
+    }
+
+    return allTracks;
+
+}
+
+
+async function fetchTracks(token: any, limit = 50, offset: any) { // GET request for the user's Liked Songs. Fetches 50 songs per call 
+    const result = await fetch(`https://api.spotify.com/v1/me/tracks?offset=${offset}&limit=${limit}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await result.json();
+    if (!result.ok) {
+        console.error("Tracks error:", result.status, data);
+        throw new Error(data.error?.message || `Failed: ${result.status}`);
+    }
+    console.log(data);
+    return data;
+}
 
 export async function redirectToAuthCodeFlow(clientId: string) {
     const verifier = generateCodeVerifier(128);
@@ -90,7 +156,6 @@ async function generateCodeChallenge(codeVerifier: string | undefined) {
         .replace(/\//g, '_')
         .replace(/=+$/, '');
 }
-
 
 export async function getAccessToken(clientId: string, code: string) {
     const verifier = localStorage.getItem("verifier");
@@ -130,44 +195,6 @@ async function fetchProfile(token: any) {
     return await result.json();
 }
 
-
-export async function trackFetchLoop(token: any, offset: number) {
-    //so i create a json, each  new loop, will append to that list, .json() it, that json will be what i return to be rendered!!
-
-    const allTracks: any[] = [];
-
-    while(offset<100){
-        const data = await fetchTracks(token, 50, offset);
-        allTracks.push(...data.items);
-        offset += 50;
-
-        if(offset >= data.total){
-            break;
-        }
-
-    }
-
-    return allTracks;
-
-}
-
-
-async function fetchTracks(token: any, limit = 50, offset: any) { //so if i want to go through their whole library. then maybe i can loop it. fuck i have like 7k songs.
-                                                // thats like 1400 loops?
-    const result = await fetch(`https://api.spotify.com/v1/me/tracks?offset=${offset}&limit=${limit}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await result.json();
-    if (!result.ok) {
-        console.error("Tracks error:", result.status, data);
-        throw new Error(data.error?.message || `Failed: ${result.status}`);
-    }
-    console.log(data);
-    return data;
-}
-
-
 function populateUI(profile: { id: string; email: string; uri: string; external_urls: { spotify: string; }; href: string; }, ) {
     // document.getElementById("displayName").innerText = profile.display_name;
     // if (profile.images[0]) {
@@ -190,13 +217,3 @@ function populateUI(profile: { id: string; email: string; uri: string; external_
     )
 
 }
-
-// function populateTracks(tracks: { items: { track: any; }[]; }) {
-//         const list = document.getElementById("tracks") ?? "test";
-//     tracks.items.forEach(({ track }) => {
-//         const li = document.createElement("li");
-//         li.textContent = `${track.name} — ${track.artists.map((a: { name: any; }) => a.name).join(", ")}`;
-//         list.appendChild(li);
-//     });
-
-// }

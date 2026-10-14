@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { allTracksPromise } from "../script";
+import { allTracksPromise } from "../../../script";
 import Styles from './TrackList.module.scss';
 
 export const TrackList = () => {
@@ -27,7 +27,6 @@ export const TrackList = () => {
 
     return (
         <div className={Styles.entireTrackSection}>
-            <div>   
             <h2 className={Styles.header}>Track List ({allTracks.length})</h2>
             {allTracks.map((item, index) => (
                 <div className={Styles.eachTrack} key={item.track?.id ?? index}>
@@ -40,7 +39,6 @@ export const TrackList = () => {
                     </p>
                 </div>
             ))}
-            </div>
         </div>
     );
 };
