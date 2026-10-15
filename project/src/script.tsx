@@ -21,17 +21,44 @@ else if (sessionStorage.getItem('spotifyTracks') == null) {
 }
 }
 
+
+async function fetchProfile(token: any) {
+    const result = await fetch("https://api.spotify.com/v1/me", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    console.log(result); // Fixed: was `profile` which doesn't exist here
+
+    return await result.json();
+}
+
 async function getLibrary(){
-    console.log("GETlibrary function called ")
+
+    
+
     const slot = sessionStorage.getItem("pending") ?? "spotifyTracks";
     //so if its the first time the promise is being called,, pendingSlot wouldnt exist
     //therefore it would make spotifyTracks
 
     if (code) { //once sign in do this
+
         const accessToken = await getAccessToken(clientId, code);
+
+        const profile = await fetchProfile(accessToken);
+        const accounts = JSON.parse(sessionStorage.getItem("accounts") ?? "[]");
+        if (( profile.account_id == accounts.account_id)) {            
+            console.log("SAME ACCOUNT DETECTED. ABORTING!!!!! SELF DESTRUCTING IN  3   2    1!!!!!")
+            return;
+        }
+
+
         const tracks = await trackFetchLoop(accessToken, 0);
         sessionStorage.setItem(slot, JSON.stringify(tracks))
         sessionStorage.removeItem("pending");
+        //add id to array   
+        sessionStorage.setItem("accounts", JSON.stringify(profile))
+        //later on can change it to just save profile.id, maybe for efficiency 
     } 
     else if (!sessionStorage.getItem("spotifyTracks")) {  //if havent sign in yet
         await redirectToAuthCodeFlow(clientId, "spotifyTracks");
@@ -146,13 +173,4 @@ export async function getAccessToken(clientId: string, code: string) {
     return data.access_token;
 }
 
-async function fetchProfile(token: any) {
-    const result = await fetch("https://api.spotify.com/v1/me", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` }
-    });
 
-    console.log(result); // Fixed: was `profile` which doesn't exist here
-
-    return await result.json();
-}

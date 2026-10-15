@@ -19,7 +19,7 @@ const App = () => {
             <h2>Logged in as <span id="displayName"></span></h2>
 
             <NextUserButton onClick={addNextUser} children="Add Next User"></NextUserButton>
-            <NextUserButton onClick={compareLibraries} children="compare library's"></NextUserButton>
+            <NextUserButton onClick={compareLibraries} children="Compare Both User's Liked Songs"></NextUserButton>
             <div className={styles.div}>
                 <TrackList slot="spotifyTracks"></TrackList>
                 <TrackList slot="spotifyTracks2"></TrackList>

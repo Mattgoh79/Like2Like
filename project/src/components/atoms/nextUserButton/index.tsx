@@ -1,5 +1,5 @@
 
-import styles from './NextUserButton.module.scss';
+import styles from './nextUserButton.module.scss';
 
 type buttonProps = {
     onClick : () => void;
