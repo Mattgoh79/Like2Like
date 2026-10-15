@@ -1,28 +1,39 @@
-import { allTracksPromise2 } from "../script";
 
+// const addNextUser = () => {
+
+import { redirectToAuthCodeFlow } from "../script";
+
+const clientId = "8a57f765adbf4334abf64a2e370ec977";
 const addNextUser = () => {
-    allTracksPromise2
-        .then((tracks) => {
-            console.log("Tracks:", tracks);
-        })
-        .catch((error) => {
-            console.error("Failed to load tracks:", error);
-        });
-};
+    redirectToAuthCodeFlow(clientId, "spotifyTracks2")
+}
+
 
 const compareLibraries = () => {
   const a = JSON.parse(sessionStorage.getItem('spotifyTracks') ?? '[]');
   const b = JSON.parse(sessionStorage.getItem('spotifyTracks2') ?? '[]');
 
-  const idsB = new Set(b.map((item: { id: string }) => item.id));
-  const matches = a.filter((item: { id: string }) => idsB.has(item.id));
+    console.log(a);
+    console.log(b); //ok so a and b is correct, but its giving only a
 
-  sessionStorage.setItem('matches', JSON.stringify(matches));
-  console.log(matches)
-  return matches;
+
+    const idsB = new Set(
+        b.map((item: { track: { id: string } }) => item.track?.id)
+    );
+
+    const matches = a.filter(
+        (item: { track: { id: string } }) => idsB.has(item.track?.id)
+    );
+
+    sessionStorage.setItem("matches", JSON.stringify(matches));
+
+    console.log("Matching tracks:", matches);
+
+    return matches;
 };
 
 
 export {
         addNextUser,
-        compareLibraries}
+        compareLibraries
+    }

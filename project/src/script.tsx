@@ -1,23 +1,11 @@
+import { useEffect, useState } from "react";
+import { TrackList } from "./components/atoms/trackList/TrackList";
 
 const clientId = "8a57f765adbf4334abf64a2e370ec977";
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
-const code2 = params.get("code");  //problem rn is that the code is the same so if therse code, theres also code2
 
 let offset = 0;
-
-
-// if (!code) {                         //since theres no code at first
-//     redirectToAuthCodeFlow(clientId);                           //it will go to the spoitfy log in page
-// } else {                            //after log in there is a code, so it goes to else
-//     const accessToken = await getAccessToken(clientId, code);
-//     // const profile = await fetchProfile(accessToken);
-//     // const tracks = await fetchTracks(accessToken, 50, 0);
-//     // populateUI(profile);
-//     // trackFetchLoop(accessToken, offset);
-//     const allTracksPromise = trackFetchLoop(accessToken, 0);
-
-// }
 
 if (code) {
     window.history.replaceState(
@@ -25,65 +13,33 @@ if (code) {
         document.title,
         window.location.pathname
     );
+
+}
+else if (sessionStorage.getItem('spotifyTracks') == null) {
+    {
+        redirectToAuthCodeFlow(clientId, "spotifyTracks");
+        getLibrary();
+}
 }
 
-export const allTracksPromise: Promise<any[]> = (async () => { //MAKE A SECOND PROMISE FOR THE SECOND GUY?
+async function getLibrary(){
+    const slot = sessionStorage.getItem("pending") ?? "spotifyTracks";
+    //so if its the first time the promise is being called,, pendingSlot wouldnt exist
+    //therefore it would make spotifyTracks
 
-    // Reuse saved tracks if the page is refreshed
-    const savedTracks = sessionStorage.getItem("spotifyTracks");
-
-    if (savedTracks) {
-        console.log("Using cached tracks");
-        return JSON.parse(savedTracks);
-    }
-
-
-    if (!code) {
-        await redirectToAuthCodeFlow(clientId);
-
-        // Redirecting navigates away from this page.
+    if (code) { //once sign in do this
+        const accessToken = await getAccessToken(clientId, code);
+        const tracks = await trackFetchLoop(accessToken, 0);
+        sessionStorage.setItem(slot, JSON.stringify(tracks))
+        sessionStorage.removeItem("pending");
+    } 
+    else if (!sessionStorage.getItem("spotifyTracks")) {  //if havent sign in yet
+        await redirectToAuthCodeFlow(clientId, "spotifyTracks");
+        console.log("FIRST TIME LOGGING IN!!!!");
         return [];
     }
-    
-    const accessToken = await getAccessToken(clientId, code);
-    
-    const allTracks = await trackFetchLoop(accessToken, 0);
-    // Save the tracks so they survive page refreshes
-    sessionStorage.setItem("spotifyTracks", JSON.stringify(allTracks));
-    
-    console.log("All tracks loaded:", allTracks.length);
-    
-    return allTracks;
-})();
 
-export const allTracksPromise2: Promise<any[]> = (async () => { 
-
-    // Reuse saved tracks if the page is refreshed
-    const savedTracks = sessionStorage.getItem("spotifyTracks2");
-
-    if (savedTracks) {
-        console.log("Using cached tracks 2 ");
-        return JSON.parse(savedTracks);
-    }
-
-
-    if (!code2) {
-        await redirectToAuthCodeFlow(clientId);
-
-        // Redirecting navigates away from this page.
-        return [];
-    }
-    
-    const accessToken = await getAccessToken(clientId, code2);
-    
-    const allTracks = await trackFetchLoop(accessToken, 0);
-    // Save the tracks so they survive page refreshes
-    sessionStorage.setItem("spotifyTracks2", JSON.stringify(allTracks));
-    
-    console.log("All tracks loaded:", allTracks.length);
-    
-    return allTracks;
-})();
+}
 
 export async function trackFetchLoop(token: any, offset: number) {
     //so i create a json, each  new loop, will append to that list, .json() it, that json will be what i return to be rendered!!
@@ -120,12 +76,12 @@ async function fetchTracks(token: any, limit = 50, offset: any) { // GET request
     return data;
 }
 
-export async function redirectToAuthCodeFlow(clientId: string) {
+export async function redirectToAuthCodeFlow(clientId: string, slot: string) {
     const verifier = generateCodeVerifier(128);
-    console.log(verifier);
     const challenge = await generateCodeChallenge(verifier);
 
     localStorage.setItem("verifier", verifier);
+    sessionStorage.setItem("pending", slot);
 
     const params = new URLSearchParams();
     params.append("client_id", clientId);
@@ -134,8 +90,13 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     params.append("scope", "user-read-private user-read-email user-library-read"); //so this is like, what things are you accessing
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
+    params.append("show_dialog", "true")
 
     document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+
+    //add promise?
+
+
 }
 
 function generateCodeVerifier(length: number) {
@@ -193,27 +154,4 @@ async function fetchProfile(token: any) {
     console.log(result); // Fixed: was `profile` which doesn't exist here
 
     return await result.json();
-}
-
-function populateUI(profile: { id: string; email: string; uri: string; external_urls: { spotify: string; }; href: string; }, ) {
-    // document.getElementById("displayName").innerText = profile.display_name;
-    // if (profile.images[0]) {
-    //     const profileImage = new Image(200, 200);
-    //     profileImage.src = profile.images[0].url;
-    //     document.getElementById("avatar").appendChild(profileImage);
-    //     document.getElementById("imgUrl").innerText = profile.images[0].url;
-    // }
-    // document.getElementById("id").innerText = profile.id;sle.href);
-    // const list = document.getElementById("tracks");
-    // tracks.items.forEach(({ track }) => {
-    //     const li = document.createElement("li");
-    //     li.textContent = `${track.name} — ${track.artists.map(a => a.name).join(", ")}`;
-    //     list.appendChild(li);
-    // });
-    return(
-        <div>ID: {profile.id}</div>
-
-
-    )
-
 }

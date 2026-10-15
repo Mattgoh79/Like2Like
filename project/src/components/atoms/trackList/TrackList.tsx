@@ -1,34 +1,24 @@
-import { useEffect, useState } from "react";
-import { allTracksPromise } from "../../../script";
+import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
 import Styles from './TrackList.module.scss';
 
-export const TrackList = () => {
-    const [allTracks, setAllTracks] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+type TrackListProps = {
 
-    useEffect(() => {
-        allTracksPromise
-            .then((tracks) => {
-                console.log("Tracks received:", tracks);
+    slot: string
+}
 
-                setAllTracks(tracks);
-            })
-            .catch((error) => {
-                console.error("Failed to load tracks:", error);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, []);
+export const TrackList = ({slot}: TrackListProps) => {
 
-    if (loading) {
-        return <div>Loading tracks...</div>;
-    }
+    const allTracks = JSON.parse(sessionStorage.getItem(slot) ?? "[]") ;
+    
+
+    // if (loading) {
+    //     return <div>Loading tracks...</div>;
+    // }
 
     return (
         <div className={Styles.entireTrackSection}>
             <h2 className={Styles.header}>Track List ({allTracks.length})</h2>
-            {allTracks.map((item, index) => (
+            {allTracks.map((item: { track: { id: any; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; artists: { name: string; }[]; }; }, index: any) => (
                 <div className={Styles.eachTrack} key={item.track?.id ?? index}>
                     <p className={Styles.trackName}>{item.track?.name}</p>
 

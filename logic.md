@@ -16,7 +16,7 @@ HOW THE APP WILL WORK BASICALLY
 
 
 
-2 IDEAS TO CONNECT LIBRARYS
+IDEAS TO CONNECT LIBRARYS
 1. one phone. 
 	- first user log in
 	- cache their songs
@@ -30,7 +30,7 @@ HOW THE APP WILL WORK BASICALLY
 	- a lot more work for me  T-T
 	- first guy presses start lobby button
 	- they log in 
-	- their library is saved in the server
+	- their library is saved like the render database
 	- using a link?? or smth the next guy comes and logs in
 	- saves their data in the server
 	- using their data in the server compare and search
