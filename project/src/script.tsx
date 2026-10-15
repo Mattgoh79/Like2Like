@@ -13,16 +13,16 @@ if (code) {
         document.title,
         window.location.pathname
     );
-
+    getLibrary();
 }
 else if (sessionStorage.getItem('spotifyTracks') == null) {
     {
-        redirectToAuthCodeFlow(clientId, "spotifyTracks");
         getLibrary();
 }
 }
 
 async function getLibrary(){
+    console.log("GETlibrary function called ")
     const slot = sessionStorage.getItem("pending") ?? "spotifyTracks";
     //so if its the first time the promise is being called,, pendingSlot wouldnt exist
     //therefore it would make spotifyTracks
@@ -37,6 +37,7 @@ async function getLibrary(){
         await redirectToAuthCodeFlow(clientId, "spotifyTracks");
         console.log("FIRST TIME LOGGING IN!!!!");
         return [];
+        // getLibrary();
     }
 
 }

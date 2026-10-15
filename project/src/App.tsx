@@ -1,6 +1,7 @@
 import { NextUserButton } from "./components/atoms/nextUserButton";
 import { TrackList } from "./components/atoms/trackList/TrackList";
 import { addNextUser, compareLibraries } from "./utils/allFrontEndFunctionsForNow";
+import styles from './app.module.scss';
 
 const App = () => {
     const renderError = (error: Error) => {
@@ -19,10 +20,11 @@ const App = () => {
 
             <NextUserButton onClick={addNextUser} children="Add Next User"></NextUserButton>
             <NextUserButton onClick={compareLibraries} children="compare library's"></NextUserButton>
-            <div>
+            <div className={styles.div}>
                 <TrackList slot="spotifyTracks"></TrackList>
                 <TrackList slot="spotifyTracks2"></TrackList>
                 {/* make this conditional on whether spotifyTracks2 exists or not */}
+                <TrackList slot="matches"></TrackList>
             </div>
         </section>
     );
